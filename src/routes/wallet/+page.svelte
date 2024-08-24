@@ -363,7 +363,7 @@
 {/each}
 
 <br />
-<p><i>(Prize savings vaults provided by <a href="https://pooltogether.com/" target="_blank">PoolTogether</a>)</i></p>
+<p><i>(Prize saving vaults provided by <a href="https://pooltogether.com/" target="_blank">PoolTogether</a>)</i></p>
 
 <style>
   .modal-button-content {
@@ -384,5 +384,11 @@
 
   p {
     opacity: 0.6;
+  }
+
+  button,
+  input,
+  select {
+    padding: 0.5rem 1rem;
   }
 </style>

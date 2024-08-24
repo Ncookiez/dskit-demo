@@ -78,6 +78,10 @@
     padding: 0.2rem 0.5rem;
   }
 
+  button {
+    padding: 0.5rem 1rem;
+  }
+
   @keyframes fade {
     from {
       opacity: 0;
