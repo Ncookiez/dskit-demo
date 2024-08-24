@@ -8,17 +8,19 @@
   import Modal from '$lib/Modal.svelte'
 
   let formAmountInput: string = ''
-  let swapTo: (Token & { address: Lowercase<Address> }) | undefined = undefined
+  let swapToAddress: Lowercase<Address> | undefined = undefined
   let allowance: bigint | undefined = undefined
 
   const onCloseModal = () => {
     formAmountInput = ''
-    swapTo = undefined
+    swapToAddress = undefined
     allowance = undefined
   }
 
   $: tokenEntries = Object.entries(tokens) as [Lowercase<Address>, Token][]
   $: vaultEntries = Object.entries(vaults) as [Lowercase<Address>, Token & { underlyingTokenAddress: Lowercase<Address> }][]
+
+  $: swapTo = !!swapToAddress ? tokenEntries.find((entry) => entry[0] === swapToAddress) : undefined
 
   const fetchAllowance = async (tokenAddress: Address, owner: Address, spender: Address) => {
     return await viemClients[base.id].readContract({
@@ -63,16 +65,16 @@
 
         <div>
           <label for="swap-options">Swap for:</label>
-          <select name="swap-options" id="swap-options" bind:value={swapTo}>
+          <select name="swap-options" id="swap-options" bind:value={swapToAddress}>
             {#each swapOptions as swapOption}
-              <option value={swapOption}>{swapOption.symbol}</option>
+              <option value={swapOption.address}>{swapOption.symbol}</option>
             {/each}
           </select>
         </div>
 
         {#if !!swapTo && !!tokenInAmount && !!$walletClient && !!$userAddress}
           {@const tokenIn = { address: tokenAddress, decimals: token.decimals, amount: tokenInAmount }}
-          {@const tokenOut = { address: swapTo.address, decimals: swapTo.decimals }}
+          {@const tokenOut = { address: swapTo[0], decimals: swapTo[1].decimals }}
           {@const executionOptions = { recipient: $userAddress }}
 
           {@const swapRoutePromise = dskit.swap.route({ tokenIn, tokenOut, executionOptions })}
@@ -83,7 +85,7 @@
             {#if !!swapRoute.request}
               {@const formattedTokenOutAmount = formatUnits(swapRoute.quote, tokenOut.decimals)}
 
-              <span>Output: {formattedTokenOutAmount} {swapTo.symbol}</span>
+              <span>Output: {formattedTokenOutAmount} {swapTo[1].symbol}</span>
 
               {#if isDolphinAddress(tokenIn.address)}
                 {@const swap = async () => {
