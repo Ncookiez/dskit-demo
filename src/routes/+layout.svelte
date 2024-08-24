@@ -10,9 +10,11 @@
 
   onMount(() => {
     Object.entries(tokens).forEach(([tokenAddress, token]) =>
-      dskit.price
-        .ofToken({ token: { address: tokenAddress as Lowercase<Address>, decimals: token.decimals }, tokenDenominator: usdc[base.id] })
-        .then((price) => tokenPrices.update((prices) => ({ ...prices, [tokenAddress]: price })))
+      setTimeout(() => {
+        dskit.price
+          .ofToken({ token: { address: tokenAddress as Lowercase<Address>, decimals: token.decimals }, tokenDenominator: usdc[base.id] })
+          .then((price) => tokenPrices.update((prices) => ({ ...prices, [tokenAddress]: price })))
+      }, 1_000)
     )
   })
 </script>
