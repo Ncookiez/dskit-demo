@@ -2,6 +2,7 @@
   import { onMount } from 'svelte'
 
   export let title: string
+  export let onClose: (() => void) | undefined = undefined
 
   let dialog: HTMLDialogElement
 
@@ -14,8 +15,13 @@
       e.clientY > dialogDimensions.bottom
 
     if (isOutside) {
-      dialog.close()
+      close()
     }
+  }
+
+  const close = () => {
+    onClose?.()
+    dialog.close()
   }
 
   onMount(() => {
@@ -33,7 +39,7 @@
   <div id="content">
     <div id="header">
       <h2>{title}</h2>
-      <button id="close" on:click={() => dialog.close()}>X</button>
+      <button id="close" on:click={() => close()}>X</button>
     </div>
     <slot name="modal-content" />
   </div>
