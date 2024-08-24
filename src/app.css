@@ -1,3 +1,42 @@
-html {
+@font-face {
+  font-family: ubuntu-mono;
+  src: url('/fonts/UbuntuMono-Regular.ttf');
+}
+
+* {
+  font-family: ubuntu-mono, monospace;
   font-feature-settings: 'calt' off;
+  font-size: medium;
+  box-sizing: border-box;
+}
+
+body {
+  --bg-0: #ffffff;
+  --bg-1: #e6e6e6;
+  --accent-0: #00bce6;
+  --accent-1: #ff729f;
+  --text-0: #283d3b;
+
+  background-color: var(--bg-0);
+  color: var(--text-0);
+}
+
+button,
+a {
+  cursor: pointer;
+}
+
+button {
+  background-color: var(--bg-1);
+  color: var(--text-0);
+  border: none;
+  border-radius: 0.5rem;
+}
+
+button:hover {
+  filter: drop-shadow(1px 1px 3px var(--accent-0));
+}
+
+button:active {
+  filter: drop-shadow(1px 1px 3px var(--accent-1));
 }
