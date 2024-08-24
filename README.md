@@ -1,18 +1,11 @@
-# create-svelte
+![DSKit](./static/brand/icon.svg)
 
-Everything you need to build a Svelte project, powered by [`create-svelte`](https://github.com/sveltejs/kit/tree/main/packages/create-svelte).
+# DSKit Demo Site
 
-## Creating a project
+This is a demo site for the **Dapp Survival Kit** (DSKit) where you can try out all the great features that the DSKit SDK has to offer with only a wallet connection or RPC!
 
-If you're seeing this, you've probably already done this step. Congrats!
-
-```bash
-# create a new project in the current directory
-npm create svelte@latest
-
-# create a new project in my-app
-npm create svelte@latest my-app
-```
+- [Check Out the Demo Site](https://demo.dskit.eth.limo/)
+- [Or Get Started with DSKit!](https://github.com/Ncookiez/dskit?tab=readme-ov-file#header)
 
 ## Developing
 
