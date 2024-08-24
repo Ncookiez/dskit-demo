@@ -322,7 +322,40 @@
       <Modal title={`Withdraw from ${vault.symbol}`} onClose={onCloseModal}>
         <span slot="button-content" class="modal-button-content">Withdraw</span>
         <div slot="modal-content" class="modal-content">
-          <!-- TODO: withdraw modal content -->
+          <input bind:value={formAmountInput} placeholder={`Enter an amount of ${vault.symbol}...`} />
+
+          {#if !!formAmountInput && !!$walletClient && !!$userAddress}
+            {@const tokenInAmount = parseUnits(formAmountInput, vault.decimals)}
+            {@const tokenOut = tokenEntries.find((entry) => entry[0] === vault.underlyingTokenAddress)}
+
+            {@const formattedTokenOutAmount = formatUnits(tokenInAmount, vault.decimals)}
+
+            <span>Output: {formattedTokenOutAmount} {tokenOut?.[1].symbol ?? '?'}</span>
+
+            {@const redeem = async () => {
+              const hash = await $walletClient.writeContract({
+                chain: base,
+                account: $userAddress,
+                address: vaultAddress,
+                abi: vaultABI,
+                functionName: 'redeem',
+                args: [tokenInAmount, $userAddress, $userAddress]
+              })
+
+              await viemClients[base.id].waitForTransactionReceipt({ hash }).then(async () => {
+                const newTokenInBalance = await fetchBalance(vaultAddress, $userAddress)
+                const newTokenOutBalance = await fetchBalance(vault.underlyingTokenAddress, $userAddress)
+
+                userBalances.update((oldBalances) => ({
+                  ...oldBalances,
+                  [vaultAddress]: newTokenInBalance,
+                  [vault.underlyingTokenAddress]: newTokenOutBalance
+                }))
+              })
+            }}
+
+            <button on:click={redeem}>Withdraw</button>
+          {/if}
         </div>
       </Modal>
     </div>
