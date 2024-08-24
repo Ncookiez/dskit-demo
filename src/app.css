@@ -31,6 +31,24 @@ button {
   color: var(--text-0);
   border: none;
   border-radius: 0.5rem;
+  padding: 0.5rem 1rem;
+}
+
+input {
+  border-radius: 0.5rem;
+  padding: 0.5rem 1 rem;
+  border: 1px solid var(--text-0);
+}
+
+input[type='date'],
+input[type='time'] {
+  padding: 0.5rem;
+}
+
+select {
+  border-radius: 0.5rem;
+  padding: 0.5rem 1 rem;
+  border: none;
 }
 
 button:hover {

@@ -69,6 +69,7 @@
         <div>
           <label for="swap-options">Swap for:</label>
           <select name="swap-options" id="swap-options" bind:value={swapToAddress}>
+            <option value={undefined}>Select a Token</option>
             {#each swapOptions as swapOption}
               <option value={swapOption.address}>{swapOption.symbol}</option>
             {/each}
@@ -192,6 +193,7 @@
           <div>
             <label for="zap-in-options">Zap from:</label>
             <select name="zap-in-options" id="zap-in-options" bind:value={zapFromAddress}>
+              <option value={undefined}>Select a Token</option>
               {#each zapInOptions as zapInOption}
                 <option value={zapInOption.address}>{zapInOption.symbol}</option>
               {/each}
@@ -380,15 +382,19 @@
     display: flex;
     align-items: center;
     gap: 0.5rem;
+    flex-wrap: wrap;
+    justify-content: flex-end;
   }
 
   p {
     opacity: 0.6;
+    text-align: center;
   }
 
   button,
   input,
   select {
     padding: 0.5rem 1rem;
+    border-radius: 0.5rem;
   }
 </style>

@@ -61,7 +61,7 @@
   }
 
   div > .values {
-    flex-shrink: 1;
+    flex-grow: 1;
   }
 
   div > span {
@@ -71,14 +71,9 @@
     gap: 1rem;
   }
 
-  .amount {
-    width: 4rem;
-    flex-shrink: 1;
-    flex-grow: 1;
-  }
-
+  .amount,
   .value {
-    width: 4rem;
+    max-width: 4rem;
     flex-shrink: 1;
     flex-grow: 1;
   }

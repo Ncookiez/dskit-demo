@@ -50,17 +50,24 @@
     animation: fade 0.3s ease-in;
   }
 
+  dialog {
+    border-radius: 1rem;
+    border: none;
+  }
+
   dialog::backdrop {
     background-color: rgba(1, 1, 7, 0.3);
     backdrop-filter: blur(2px);
   }
 
   dialog #content {
-    min-width: 30rem;
+    width: 24rem;
+    min-width: 18rem;
+    max-width: 80vw;
     display: flex;
     flex-direction: column;
     gap: 1em;
-    padding: 1em;
+    padding: 0.5em;
   }
 
   dialog #header {
