@@ -58,7 +58,7 @@
       .filter((entry) => entry[0] !== tokenAddress && !isDolphinAddress(entry[0]))
       .map((entry) => ({ address: entry[0], ...entry[1] }))}
 
-    <Modal title="Swap" onClose={onCloseModal}>
+    <Modal title={`Swap ${token.symbol}`} onClose={onCloseModal}>
       <span slot="button-content" class="modal-button-content">Swap</span>
       <div slot="modal-content" class="modal-content">
         <input bind:value={formAmountInput} placeholder={`Enter an amount of ${token.symbol}...`} />
@@ -102,8 +102,14 @@
                     })
 
                     await viemClients[base.id].waitForTransactionReceipt({ hash }).then(async () => {
-                      const newBalance = await fetchBalance(tokenIn.address, $userAddress)
-                      userBalances.update((oldBalances) => ({ ...oldBalances, [tokenIn.address]: newBalance }))
+                      const newTokenInBalance = await fetchBalance(tokenIn.address, $userAddress)
+                      const newTokenOutBalance = await fetchBalance(tokenOut.address, $userAddress)
+
+                      userBalances.update((oldBalances) => ({
+                        ...oldBalances,
+                        [tokenIn.address]: newTokenInBalance,
+                        [tokenOut.address]: newTokenOutBalance
+                      }))
                     })
                   }
                 }}
@@ -151,8 +157,14 @@
                     })
 
                     await viemClients[base.id].waitForTransactionReceipt({ hash }).then(async () => {
-                      const newBalance = await fetchBalance(tokenIn.address, $userAddress)
-                      userBalances.update((oldBalances) => ({ ...oldBalances, [tokenIn.address]: newBalance }))
+                      const newTokenInBalance = await fetchBalance(tokenIn.address, $userAddress)
+                      const newTokenOutBalance = await fetchBalance(tokenOut.address, $userAddress)
+
+                      userBalances.update((oldBalances) => ({
+                        ...oldBalances,
+                        [tokenIn.address]: newTokenInBalance,
+                        [tokenOut.address]: newTokenOutBalance
+                      }))
 
                       if (!!swapRoute.request) {
                         allowance = await fetchAllowance(tokenIn.address, $userAddress, swapRoute.request.address)
@@ -188,13 +200,13 @@
 
   <TokenRow {icon} symbol={vault.symbol} {amount} {price}>
     <div class="vault-actions">
-      <Modal title="Deposit" onClose={onCloseModal}>
+      <Modal title={`Deposit into ${vault.symbol}`} onClose={onCloseModal}>
         <span slot="button-content" class="modal-button-content">Deposit</span>
         <div slot="modal-content" class="modal-content">
           <!-- TODO: deposit modal content -->
         </div>
       </Modal>
-      <Modal title="Withdraw" onClose={onCloseModal}>
+      <Modal title={`Withdraw from ${vault.symbol}`} onClose={onCloseModal}>
         <span slot="button-content" class="modal-button-content">Withdraw</span>
         <div slot="modal-content" class="modal-content">
           <!-- TODO: withdraw modal content -->
