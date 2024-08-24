@@ -1,8 +1,9 @@
 <script lang="ts">
   import { tokens, vaults, type Token } from '$lib/config'
   import { tokenPrices, userBalances } from '$lib/stores'
-  import TokenRow from '$lib/TokenRow.svelte'
   import { formatUnits, type Address } from 'viem'
+  import TokenRow from '$lib/TokenRow.svelte'
+  import Modal from '$lib/Modal.svelte'
 
   $: tokenEntries = Object.entries(tokens) as [Lowercase<Address>, Token][]
   $: vaultEntries = Object.entries(vaults) as [Lowercase<Address>, Token & { underlyingTokenAddress: Lowercase<Address> }][]
@@ -19,7 +20,10 @@
   {@const price = $tokenPrices[tokenAddress]}
 
   <TokenRow {icon} symbol={token.symbol} {amount} {price}>
-    <button>Swap</button>
+    <Modal title="Swap">
+      <span slot="button-content" class="modal-button-content">Swap</span>
+      <div slot="modal-content" class="modal-content">MODAL CONTENT</div>
+    </Modal>
   </TokenRow>
 {/each}
 
@@ -32,9 +36,33 @@
   {@const price = $tokenPrices[vault.underlyingTokenAddress]}
 
   <TokenRow {icon} symbol={vault.symbol} {amount} {price}>
-    <div>
-      <button>Deposit</button>
-      <button>Withdraw</button>
+    <div class="vault-actions">
+      <Modal title="Deposit">
+        <span slot="button-content" class="modal-button-content">Deposit</span>
+        <div slot="modal-content" class="modal-content">MODAL CONTENT</div>
+      </Modal>
+      <Modal title="Withdraw">
+        <span slot="button-content" class="modal-button-content">Withdraw</span>
+        <div slot="modal-content" class="modal-content">MODAL CONTENT</div>
+      </Modal>
     </div>
   </TokenRow>
 {/each}
+
+<style>
+  .modal-button-content {
+    padding: 0 0.5rem;
+  }
+
+  .modal-content {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+  }
+
+  .vault-actions {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+</style>
