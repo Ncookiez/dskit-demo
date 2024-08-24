@@ -1,24 +1,21 @@
-<script>
+<script lang="ts">
+  import { tokens, vaults } from '$lib/config'
   import TokenRow from '$lib/TokenRow.svelte'
 </script>
 
 <a href="/">{'<--'} Wallet Management</a>
 
 <h2>Tokens</h2>
-<TokenRow icon={{ src: 'icons/tokens/eth.png', alt: 'ETH' }} name="ETH" amount={0} price={0}><button>Swap</button></TokenRow>
-<TokenRow icon={{ src: 'icons/tokens/weth.png', alt: 'WETH' }} name="WETH" amount={0} price={0}><button>Swap</button></TokenRow>
-<TokenRow icon={{ src: 'icons/tokens/usdc.png', alt: 'USDC' }} name="USDC" amount={0} price={0}><button>Swap</button></TokenRow>
+{#each Object.values(tokens) as token}
+  <TokenRow icon={{ src: token.iconSrc, alt: token.symbol }} symbol={token.symbol} amount={0} price={0}><button>Swap</button></TokenRow>
+{/each}
 
 <h2>Savings</h2>
-<TokenRow icon={{ src: 'icons/tokens/weth.png', alt: 'WETH' }} name="przWETH" amount={0} price={0}>
-  <div>
-    <button>Deposit</button>
-    <button>Withdraw</button>
-  </div>
-</TokenRow>
-<TokenRow icon={{ src: 'icons/tokens/usdc.png', alt: 'USDC' }} name="przUSDC" amount={0} price={0}>
-  <div>
-    <button>Deposit</button>
-    <button>Withdraw</button>
-  </div>
-</TokenRow>
+{#each Object.values(vaults) as vault}
+  <TokenRow icon={{ src: vault.iconSrc, alt: vault.symbol }} symbol={vault.symbol} amount={0} price={0}>
+    <div>
+      <button>Deposit</button>
+      <button>Withdraw</button>
+    </div>
+  </TokenRow>
+{/each}

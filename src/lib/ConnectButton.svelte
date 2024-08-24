@@ -1,7 +1,7 @@
 <script lang="ts">
   import { connect, disconnect, getWalletClient, injected } from '@wagmi/core'
   import { userAddress, walletClient } from './stores'
-  import { base } from '@wagmi/core/chains'
+  import { base } from 'viem/chains'
   import { wagmiConfig } from './config'
 
   const connectWallet = async () => {
