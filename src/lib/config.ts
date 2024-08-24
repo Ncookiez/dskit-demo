@@ -26,22 +26,22 @@ export interface Token {
 }
 
 export const tokens: { [tokenAddress: Lowercase<Address>]: Token } = {
-  [dolphinAddress]: { symbol: 'ETH', decimals: 18, iconSrc: '/icons/tokens/eth.png' },
-  [weth[base.id].address]: { symbol: 'WETH', decimals: 18, iconSrc: '/icons/tokens/weth.png' },
-  [usdc[base.id].address]: { symbol: 'USDC', decimals: 6, iconSrc: '/icons/tokens/usdc.png' }
+  [dolphinAddress]: { symbol: 'ETH', decimals: 18, iconSrc: '/tokens/eth.webp' },
+  [weth[base.id].address]: { symbol: 'WETH', decimals: 18, iconSrc: '/tokens/weth.webp' },
+  [usdc[base.id].address]: { symbol: 'USDC', decimals: 6, iconSrc: '/tokens/usdc.webp' }
 }
 
 export const vaults: { [vaultAddress: Lowercase<Address>]: Token & { underlyingTokenAddress: Lowercase<Address> } } = {
   '0x4e42f783db2d0c5bdff40fdc66fcae8b1cda4a43': {
     symbol: 'przWETH',
     decimals: 18,
-    iconSrc: '/icons/tokens/weth.png',
+    iconSrc: '/tokens/przWETH.svg',
     underlyingTokenAddress: weth[base.id].address
   },
   '0x7f5c2b379b88499ac2b997db583f8079503f25b9': {
     symbol: 'przUSDC',
     decimals: 6,
-    iconSrc: '/icons/tokens/usdc.png',
+    iconSrc: '/tokens/przUSDC.svg',
     underlyingTokenAddress: usdc[base.id].address
   }
 }
