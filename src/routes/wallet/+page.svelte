@@ -14,8 +14,9 @@
 {#each tokenEntries as tokenEntry}
   {@const [tokenAddress, token] = tokenEntry}
   {@const icon = { src: token.iconSrc, alt: token.symbol }}
-  {@const amount = parseFloat(formatUnits($userBalances[tokenAddress] ?? 0n, token.decimals))}
-  {@const price = $tokenPrices[tokenAddress] ?? 0}
+  {@const amount =
+    $userBalances[tokenAddress] !== undefined ? parseFloat(formatUnits($userBalances[tokenAddress], token.decimals)) : undefined}
+  {@const price = $tokenPrices[tokenAddress]}
 
   <TokenRow {icon} symbol={token.symbol} {amount} {price}>
     <button>Swap</button>
@@ -26,8 +27,9 @@
 {#each vaultEntries as vaultEntry}
   {@const [vaultAddress, vault] = vaultEntry}
   {@const icon = { src: vault.iconSrc, alt: vault.symbol }}
-  {@const amount = parseFloat(formatUnits($userBalances[vaultAddress] ?? 0n, vault.decimals))}
-  {@const price = $tokenPrices[vault.underlyingTokenAddress] ?? 0}
+  {@const amount =
+    $userBalances[vaultAddress] !== undefined ? parseFloat(formatUnits($userBalances[vaultAddress], vault.decimals)) : undefined}
+  {@const price = $tokenPrices[vault.underlyingTokenAddress]}
 
   <TokenRow {icon} symbol={vault.symbol} {amount} {price}>
     <div>

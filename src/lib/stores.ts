@@ -1,5 +1,6 @@
 import { erc20Abi, type Address, type WalletClient } from 'viem'
 import { tokens, vaults, viemClients } from './config'
+import { dolphinAddress, isDolphinAddress } from 'dskit-eth'
 import { writable } from 'svelte/store'
 import { base } from 'viem/chains'
 
@@ -21,7 +22,9 @@ userAddress.subscribe(async (address) => {
   const newUserBalances: { [tokenAddress: Lowercase<Address>]: bigint } = {}
 
   if (!!address) {
-    const tokenAddresses = [...Object.keys(tokens), ...Object.keys(vaults)] as Lowercase<Address>[]
+    const tokenAddresses = ([...Object.keys(tokens), ...Object.keys(vaults)] as Lowercase<Address>[]).filter(
+      (tokenAddress) => !isDolphinAddress(tokenAddress)
+    )
 
     const multicallResults = await viemClients[base.id].multicall({
       contracts: tokenAddresses.map((tokenAddress) => ({
@@ -39,6 +42,8 @@ userAddress.subscribe(async (address) => {
         newUserBalances[tokenAddress] = multicallResult.result
       }
     })
+
+    newUserBalances[dolphinAddress] = await viemClients[base.id].getBalance({ address })
   }
 
   userBalances.set(newUserBalances)
