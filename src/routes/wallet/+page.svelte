@@ -2,7 +2,7 @@
   import { dskit, tokens, vaultABI, vaults, viemClients, type Token } from '$lib/config'
   import { tokenPrices, userAddress, userBalances, walletClient } from '$lib/stores'
   import { erc20Abi, formatUnits, parseUnits, type Address } from 'viem'
-  import { isDolphinAddress, weth } from 'dskit-eth'
+  import { isDolphinAddress, weth, zapRouter } from 'dskit-eth'
   import { base } from 'viem/chains'
   import TokenRow from '$lib/TokenRow.svelte'
   import Modal from '$lib/Modal.svelte'
@@ -41,6 +41,10 @@
       functionName: 'balanceOf',
       args: [owner]
     })
+  }
+
+  const getGasBuffer = (gasEstimate: bigint) => {
+    return (gasEstimate * parseUnits('1.2', 18)) / 10n ** 18n
   }
 </script>
 
@@ -94,8 +98,13 @@
               {#if isDolphinAddress(tokenIn.address)}
                 {@const swap = async () => {
                   if (!!swapRoute.request) {
-                    const hash = await $walletClient.writeContract({ chain: base, account: $userAddress, ...swapRoute.request })
-
+                    const gasEstimate = await viemClients[base.id].estimateContractGas({ account: $userAddress, ...swapRoute.request })
+                    const hash = await $walletClient.writeContract({
+                      chain: base,
+                      account: $userAddress,
+                      ...swapRoute.request,
+                      gas: getGasBuffer(gasEstimate)
+                    })
                     await viemClients[base.id].waitForTransactionReceipt({ hash }).then(async () => {
                       const newTokenInBalance = await fetchBalance(tokenIn.address, $userAddress)
                       const newTokenOutBalance = await fetchBalance(tokenOut.address, $userAddress)
@@ -118,13 +127,21 @@
                     allowance = await fetchAllowance(tokenIn.address, $userAddress, swapRoute.request.address)
 
                     if (allowance < tokenIn.amount) {
+                      const gasEstimate = await viemClients[base.id].estimateContractGas({
+                        account: $userAddress,
+                        address: tokenIn.address,
+                        abi: erc20Abi,
+                        functionName: 'approve',
+                        args: [swapRoute.request.address, tokenIn.amount]
+                      })
                       const hash = await $walletClient.writeContract({
                         chain: base,
                         account: $userAddress,
                         address: tokenIn.address,
                         abi: erc20Abi,
                         functionName: 'approve',
-                        args: [swapRoute.request.address, tokenIn.amount]
+                        args: [swapRoute.request.address, tokenIn.amount],
+                        gas: getGasBuffer(gasEstimate)
                       })
 
                       await viemClients[base.id].waitForTransactionReceipt({ hash }).then(async () => {
@@ -138,8 +155,13 @@
 
                 {@const swap = async () => {
                   if (!!swapRoute.request) {
-                    const hash = await $walletClient.writeContract({ chain: base, account: $userAddress, ...swapRoute.request })
-
+                    const gasEstimate = await viemClients[base.id].estimateContractGas({ account: $userAddress, ...swapRoute.request })
+                    const hash = await $walletClient.writeContract({
+                      chain: base,
+                      account: $userAddress,
+                      ...swapRoute.request,
+                      gas: getGasBuffer(gasEstimate)
+                    })
                     await viemClients[base.id].waitForTransactionReceipt({ hash }).then(async () => {
                       const newTokenInBalance = await fetchBalance(tokenIn.address, $userAddress)
                       const newTokenOutBalance = await fetchBalance(tokenOut.address, $userAddress)
@@ -207,15 +229,14 @@
 
             {@const tokenIn = { address: zapFrom[0], decimals: zapFrom[1].decimals, amount: tokenInAmount }}
             {@const swapTo =
-              tokenIn.address !== vault.underlyingTokenAddress &&
-              (!isDolphinAddress(tokenIn.address) || vault.underlyingTokenAddress !== weth[base.id].address)
+              tokenIn.address !== vault.underlyingTokenAddress
                 ? { address: vault.underlyingTokenAddress, decimals: tokens[vault.underlyingTokenAddress].decimals }
                 : undefined}
             {@const action = {
               address: vaultAddress,
               abi: vaultABI,
               functionName: 'deposit',
-              args: [0n, $userAddress],
+              args: [tokenIn.amount, zapRouter[base.id]],
               injectedAmountIndex: 4
             }}
             {@const tokenOut = { address: vaultAddress, minAmount: 1n }}
@@ -225,7 +246,7 @@
             {#await zapPromise}
               <span>Fetching zap route...</span>
             {:then zapRoute}
-              {#if !!swapTo}
+              {#if !!swapTo && (!isDolphinAddress(tokenIn.address) || vault.underlyingTokenAddress !== weth[base.id].address)}
                 {@const swapTokenIn = isDolphinAddress(tokenIn.address) ? { ...tokenIn, address: weth[base.id].address } : tokenIn}
                 {@const executionOptions = { recipient: $userAddress }}
 
@@ -249,7 +270,14 @@
               {#if isDolphinAddress(tokenIn.address)}
                 {@const zap = async () => {
                   // @ts-ignore
-                  const hash = await $walletClient.writeContract({ chain: base, account: $userAddress, ...zapRoute.request })
+                  const gasEstimate = await viemClients[base.id].estimateContractGas({ account: $userAddress, ...zapRoute.request })
+                  // @ts-ignore
+                  const hash = await $walletClient.writeContract({
+                    chain: base,
+                    account: $userAddress,
+                    ...zapRoute.request,
+                    gas: getGasBuffer(gasEstimate)
+                  })
 
                   await viemClients[base.id].waitForTransactionReceipt({ hash }).then(async () => {
                     const newTokenInBalance = await fetchBalance(tokenIn.address, $userAddress)
@@ -272,13 +300,21 @@
                     allowance = await fetchAllowance(tokenIn.address, $userAddress, zapRoute.approval.spender)
 
                     if (allowance < tokenIn.amount) {
+                      const gasEstimate = await viemClients[base.id].estimateContractGas({
+                        account: $userAddress,
+                        address: tokenIn.address,
+                        abi: erc20Abi,
+                        functionName: 'approve',
+                        args: [zapRoute.approval.spender, tokenIn.amount]
+                      })
                       const hash = await $walletClient.writeContract({
                         chain: base,
                         account: $userAddress,
                         address: tokenIn.address,
                         abi: erc20Abi,
                         functionName: 'approve',
-                        args: [zapRoute.approval.spender, tokenIn.amount]
+                        args: [zapRoute.approval.spender, tokenIn.amount],
+                        gas: getGasBuffer(gasEstimate)
                       })
 
                       await viemClients[base.id].waitForTransactionReceipt({ hash }).then(async () => {
@@ -292,7 +328,14 @@
 
                 {@const zap = async () => {
                   // @ts-ignore
-                  const hash = await $walletClient.writeContract({ chain: base, account: $userAddress, ...zapRoute.request })
+                  const gasEstimate = await viemClients[base.id].estimateContractGas({ account: $userAddress, ...zapRoute.request })
+                  // @ts-ignore
+                  const hash = await $walletClient.writeContract({
+                    chain: base,
+                    account: $userAddress,
+                    ...zapRoute.request,
+                    gas: getGasBuffer(gasEstimate)
+                  })
 
                   await viemClients[base.id].waitForTransactionReceipt({ hash }).then(async () => {
                     const newTokenInBalance = await fetchBalance(tokenIn.address, $userAddress)
@@ -335,13 +378,21 @@
             <span>Output: {formattedTokenOutAmount} {tokenOut?.[1].symbol ?? '?'}</span>
 
             {@const redeem = async () => {
+              const gasEstimate = await viemClients[base.id].estimateContractGas({
+                account: $userAddress,
+                address: vaultAddress,
+                abi: vaultABI,
+                functionName: 'redeem',
+                args: [tokenInAmount, $userAddress, $userAddress]
+              })
               const hash = await $walletClient.writeContract({
                 chain: base,
                 account: $userAddress,
                 address: vaultAddress,
                 abi: vaultABI,
                 functionName: 'redeem',
-                args: [tokenInAmount, $userAddress, $userAddress]
+                args: [tokenInAmount, $userAddress, $userAddress],
+                gas: getGasBuffer(gasEstimate)
               })
 
               await viemClients[base.id].waitForTransactionReceipt({ hash }).then(async () => {
