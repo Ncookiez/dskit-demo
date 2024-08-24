@@ -9,7 +9,6 @@
   let blockExplorer: string | undefined
   let blockDate = new Date(Date.now() - 86400000).toISOString().slice(0, 10)
   let blockTime = '12:00'
-  $: console.log(blockTime)
 
   onMount(async () => {
     const client = await dskit.getPublicClient()
@@ -21,9 +20,7 @@
     searching = true
     searchBlock = undefined
     try {
-      console.log(blockDate)
       const dateInSec = Math.floor(new Date(`${blockDate}T${blockTime}:00Z`).getTime() / 1000)
-      console.log(dateInSec)
       searchBlock = await dskit.block.nearTimestamp({
         targetTimestamp: dateInSec,
         targetRangeSeconds: 60
