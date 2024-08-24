@@ -10,7 +10,7 @@
   <PageLink href="/socials" icon={{ src: '/icons/users-social.svg', alt: 'Socials Page' }} disabled>Socials</PageLink>
   <PageLink
     target="_blank"
-    href="https://github.com/Ncookiez/dskit?tab=readme-ov-file#ds-kit"
+    href="https://github.com/Ncookiez/dskit?tab=readme-ov-file#header"
     icon={{ src: '/icons/medical-sign.svg', alt: 'Get Started with DSKit!' }}>Get Started!</PageLink
   >
 </nav>
