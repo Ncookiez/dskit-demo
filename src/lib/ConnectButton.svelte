@@ -1,11 +1,11 @@
 <script lang="ts">
   import { connect, disconnect, getWalletClient, injected } from '@wagmi/core'
-  import { wagmiConfig } from './config'
   import { userAddress, walletClient } from './stores'
-  import { optimism } from '@wagmi/core/chains'
+  import { base } from '@wagmi/core/chains'
+  import { wagmiConfig } from './config'
 
   const connectWallet = async () => {
-    await connect(wagmiConfig, { chainId: optimism.id, connector: injected() })
+    await connect(wagmiConfig, { chainId: base.id, connector: injected() })
     walletClient.set(await getWalletClient(wagmiConfig))
   }
 
