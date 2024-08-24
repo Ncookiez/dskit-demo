@@ -8,14 +8,18 @@
   import type { Address } from 'viem'
   import '../app.css'
 
-  onMount(() => {
-    Object.entries(tokens).forEach(([tokenAddress, token]) =>
-      setTimeout(() => {
-        dskit.price
-          .ofToken({ token: { address: tokenAddress as Lowercase<Address>, decimals: token.decimals }, tokenDenominator: usdc[base.id] })
-          .then((price) => tokenPrices.update((prices) => ({ ...prices, [tokenAddress]: price })))
-      }, 1_000)
-    )
+  onMount(async () => {
+    for (const [tokenAddress, token] of Object.entries(tokens)) {
+      try {
+        const price = await dskit.price.ofToken({
+          token: { address: tokenAddress as Lowercase<Address>, decimals: token.decimals },
+          tokenDenominator: usdc[base.id]
+        })
+        tokenPrices.update((prices) => ({ ...prices, [tokenAddress]: price }))
+      } catch (err) {
+        console.error(err)
+      }
+    }
   })
 </script>
 
