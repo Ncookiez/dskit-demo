@@ -313,8 +313,7 @@
                   <button on:click={zap} disabled={!isApproved}>Zap</button>
                 </div>
               {/if}
-            {:catch error}
-              {error.message}
+            {:catch}
               <span>No zap route found :(</span>
             {/await}
           {/if}
