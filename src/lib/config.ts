@@ -28,7 +28,17 @@ export interface Token {
 export const tokens: { [tokenAddress: Lowercase<Address>]: Token } = {
   [dolphinAddress]: { symbol: 'ETH', decimals: 18, iconSrc: '/tokens/eth.webp' },
   [weth[base.id].address]: { symbol: 'WETH', decimals: 18, iconSrc: '/tokens/weth.webp' },
-  [usdc[base.id].address]: { symbol: 'USDC', decimals: 6, iconSrc: '/tokens/usdc.webp' }
+  [usdc[base.id].address]: { symbol: 'USDC', decimals: 6, iconSrc: '/tokens/usdc.webp' },
+  ['0x60a3e35cc302bfa44cb288bc5a4f316fdb1adb42']: {
+    symbol: 'EURC',
+    decimals: 6,
+    iconSrc: '/tokens/eurc.webp'
+  },
+  ['0xc1cba3fcea344f92d9239c08c0568f6f2f0ee452']: {
+    symbol: 'wstETH',
+    decimals: 18,
+    iconSrc: '/tokens/wstETH.webp'
+  }
 }
 
 export const vaults: { [vaultAddress: Lowercase<Address>]: Token & { underlyingTokenAddress: Lowercase<Address> } } = {

@@ -50,6 +50,10 @@
     width: 7rem;
   }
 
+  div > .token-info > img {
+    border-radius: 50%;
+  }
+
   div > .actions {
     flex-grow: 1;
     align-items: center;
