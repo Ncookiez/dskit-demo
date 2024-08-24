@@ -1,19 +1,21 @@
 <script lang="ts">
-  import { encodeFunctionData, erc20Abi, formatUnits, parseUnits, type Address } from 'viem'
+  import { dskit, tokens, vaultABI, vaults, viemClients, type Token } from '$lib/config'
   import { tokenPrices, userAddress, userBalances, walletClient } from '$lib/stores'
-  import { dskit, tokens, vaults, viemClients, type Token } from '$lib/config'
-  import { isDolphinAddress } from 'dskit-eth'
+  import { erc20Abi, formatUnits, parseUnits, type Address } from 'viem'
+  import { isDolphinAddress, weth } from 'dskit-eth'
   import { base } from 'viem/chains'
   import TokenRow from '$lib/TokenRow.svelte'
   import Modal from '$lib/Modal.svelte'
 
   let formAmountInput: string = ''
   let swapToAddress: Lowercase<Address> | undefined = undefined
+  let zapFromAddress: Lowercase<Address> | undefined = undefined
   let allowance: bigint | undefined = undefined
 
   const onCloseModal = () => {
     formAmountInput = ''
     swapToAddress = undefined
+    zapFromAddress = undefined
     allowance = undefined
   }
 
@@ -21,6 +23,7 @@
   $: vaultEntries = Object.entries(vaults) as [Lowercase<Address>, Token & { underlyingTokenAddress: Lowercase<Address> }][]
 
   $: swapTo = !!swapToAddress ? tokenEntries.find((entry) => entry[0] === swapToAddress) : undefined
+  $: zapFrom = !!zapFromAddress ? tokenEntries.find((entry) => entry[0] === zapFromAddress) : undefined
 
   const fetchAllowance = async (tokenAddress: Address, owner: Address, spender: Address) => {
     return await viemClients[base.id].readContract({
@@ -90,16 +93,7 @@
               {#if isDolphinAddress(tokenIn.address)}
                 {@const swap = async () => {
                   if (!!swapRoute.request) {
-                    const hash = await $walletClient.sendTransaction({
-                      chain: base,
-                      account: $userAddress,
-                      to: swapRoute.request.address,
-                      data: encodeFunctionData({
-                        abi: swapRoute.request.abi,
-                        functionName: swapRoute.request.functionName,
-                        args: swapRoute.request.args
-                      })
-                    })
+                    const hash = await $walletClient.writeContract({ chain: base, account: $userAddress, ...swapRoute.request })
 
                     await viemClients[base.id].waitForTransactionReceipt({ hash }).then(async () => {
                       const newTokenInBalance = await fetchBalance(tokenIn.address, $userAddress)
@@ -123,15 +117,13 @@
                     allowance = await fetchAllowance(tokenIn.address, $userAddress, swapRoute.request.address)
 
                     if (allowance < tokenIn.amount) {
-                      const hash = await $walletClient.sendTransaction({
+                      const hash = await $walletClient.writeContract({
                         chain: base,
                         account: $userAddress,
-                        to: tokenIn.address,
-                        data: encodeFunctionData({
-                          abi: erc20Abi,
-                          functionName: 'approve',
-                          args: [swapRoute.request.address, tokenIn.amount]
-                        })
+                        address: tokenIn.address,
+                        abi: erc20Abi,
+                        functionName: 'approve',
+                        args: [swapRoute.request.address, tokenIn.amount]
                       })
 
                       await viemClients[base.id].waitForTransactionReceipt({ hash }).then(async () => {
@@ -145,16 +137,7 @@
 
                 {@const swap = async () => {
                   if (!!swapRoute.request) {
-                    const hash = await $walletClient.sendTransaction({
-                      chain: base,
-                      account: $userAddress,
-                      to: swapRoute.request.address,
-                      data: encodeFunctionData({
-                        abi: swapRoute.request.abi,
-                        functionName: swapRoute.request.functionName,
-                        args: swapRoute.request.args
-                      })
-                    })
+                    const hash = await $walletClient.writeContract({ chain: base, account: $userAddress, ...swapRoute.request })
 
                     await viemClients[base.id].waitForTransactionReceipt({ hash }).then(async () => {
                       const newTokenInBalance = await fetchBalance(tokenIn.address, $userAddress)
@@ -193,17 +176,148 @@
 <h2>Savings</h2>
 {#each vaultEntries as vaultEntry}
   {@const [vaultAddress, vault] = vaultEntry}
+
   {@const icon = { src: vault.iconSrc, alt: vault.symbol }}
   {@const amount =
     $userBalances[vaultAddress] !== undefined ? parseFloat(formatUnits($userBalances[vaultAddress], vault.decimals)) : undefined}
   {@const price = $tokenPrices[vault.underlyingTokenAddress]}
 
   <TokenRow {icon} symbol={vault.symbol} {amount} {price}>
+    {@const zapInOptions = tokenEntries.map((entry) => ({ address: entry[0], ...entry[1] }))}
+
     <div class="vault-actions">
       <Modal title={`Deposit into ${vault.symbol}`} onClose={onCloseModal}>
         <span slot="button-content" class="modal-button-content">Deposit</span>
         <div slot="modal-content" class="modal-content">
-          <!-- TODO: deposit modal content -->
+          <div>
+            <label for="zap-in-options">Zap from:</label>
+            <select name="zap-in-options" id="zap-in-options" bind:value={zapFromAddress}>
+              {#each zapInOptions as zapInOption}
+                <option value={zapInOption.address}>{zapInOption.symbol}</option>
+              {/each}
+            </select>
+          </div>
+
+          <input bind:value={formAmountInput} placeholder={`Enter an amount of ${zapFrom?.[1].symbol ?? '?'}...`} />
+
+          {#if !!zapFrom && !!formAmountInput && !!$walletClient && !!$userAddress}
+            {@const tokenInAmount = parseUnits(formAmountInput, zapFrom[1].decimals)}
+
+            {@const tokenIn = { address: zapFrom[0], decimals: zapFrom[1].decimals, amount: tokenInAmount }}
+            {@const swapTo =
+              tokenIn.address !== vault.underlyingTokenAddress &&
+              (!isDolphinAddress(tokenIn.address) || vault.underlyingTokenAddress !== weth[base.id].address)
+                ? { address: vault.underlyingTokenAddress, decimals: tokens[vault.underlyingTokenAddress].decimals }
+                : undefined}
+            {@const action = {
+              address: vaultAddress,
+              abi: vaultABI,
+              functionName: 'deposit',
+              args: [0n, $userAddress],
+              injectedAmountIndex: 4
+            }}
+            {@const tokenOut = { address: vaultAddress, minAmount: 1n }}
+
+            {@const zapPromise = dskit.zap.tx({ tokenIn, swapTo, action, tokenOut, userAddress: $userAddress })}
+
+            {#await zapPromise}
+              <span>Fetching zap route...</span>
+            {:then zapRoute}
+              {#if !!swapTo}
+                {@const swapTokenIn = isDolphinAddress(tokenIn.address) ? { ...tokenIn, address: weth[base.id].address } : tokenIn}
+                {@const executionOptions = { recipient: $userAddress }}
+
+                {@const swapRoutePromise = dskit.swap.route({ tokenIn: swapTokenIn, tokenOut: swapTo, executionOptions })}
+
+                {#await swapRoutePromise}
+                  <span>Output: ... {vault.symbol}</span>
+                {:then swapRoute}
+                  {@const formattedTokenOutAmount = formatUnits(swapRoute.quote, swapTo.decimals)}
+
+                  <span>Output: {formattedTokenOutAmount} {vault.symbol}</span>
+                {:catch}
+                  <span>Something went wrong :(</span>
+                {/await}
+              {:else}
+                {@const formattedTokenOutAmount = formatUnits(tokenIn.amount, tokenIn.decimals)}
+
+                <span>Output: {formattedTokenOutAmount} {vault.symbol}</span>
+              {/if}
+
+              {#if isDolphinAddress(tokenIn.address)}
+                {@const zap = async () => {
+                  // @ts-ignore
+                  const hash = await $walletClient.writeContract({ chain: base, account: $userAddress, ...zapRoute.request })
+
+                  await viemClients[base.id].waitForTransactionReceipt({ hash }).then(async () => {
+                    const newTokenInBalance = await fetchBalance(tokenIn.address, $userAddress)
+                    const newTokenOutBalance = await fetchBalance(tokenOut.address, $userAddress)
+
+                    userBalances.update((oldBalances) => ({
+                      ...oldBalances,
+                      [tokenIn.address]: newTokenInBalance,
+                      [tokenOut.address]: newTokenOutBalance
+                    }))
+                  })
+                }}
+
+                <button on:click={zap}>Zap</button>
+              {:else}
+                {@const isApproved = allowance !== undefined && allowance >= tokenIn.amount}
+
+                {@const approve = async () => {
+                  if (!!zapRoute.approval) {
+                    allowance = await fetchAllowance(tokenIn.address, $userAddress, zapRoute.approval.spender)
+
+                    if (allowance < tokenIn.amount) {
+                      const hash = await $walletClient.writeContract({
+                        chain: base,
+                        account: $userAddress,
+                        address: tokenIn.address,
+                        abi: erc20Abi,
+                        functionName: 'approve',
+                        args: [zapRoute.approval.spender, tokenIn.amount]
+                      })
+
+                      await viemClients[base.id].waitForTransactionReceipt({ hash }).then(async () => {
+                        if (!!zapRoute.approval) {
+                          allowance = await fetchAllowance(tokenIn.address, $userAddress, zapRoute.approval.spender)
+                        }
+                      })
+                    }
+                  }
+                }}
+
+                {@const zap = async () => {
+                  // @ts-ignore
+                  const hash = await $walletClient.writeContract({ chain: base, account: $userAddress, ...zapRoute.request })
+
+                  await viemClients[base.id].waitForTransactionReceipt({ hash }).then(async () => {
+                    const newTokenInBalance = await fetchBalance(tokenIn.address, $userAddress)
+                    const newTokenOutBalance = await fetchBalance(tokenOut.address, $userAddress)
+
+                    userBalances.update((oldBalances) => ({
+                      ...oldBalances,
+                      [tokenIn.address]: newTokenInBalance,
+                      [tokenOut.address]: newTokenOutBalance
+                    }))
+
+                    if (!!zapRoute.approval) {
+                      allowance = await fetchAllowance(tokenIn.address, $userAddress, zapRoute.approval.spender)
+                    }
+                  })
+                }}
+
+                <div>
+                  <button on:click={approve} disabled={isApproved}>Approve</button>
+                  <button on:click={zap} disabled={!isApproved}>Zap</button>
+                </div>
+              {/if}
+            {:catch error}
+              {error.message}
+              <span>No zap route found :(</span>
+            {/await}
+          {/if}
         </div>
       </Modal>
       <Modal title={`Withdraw from ${vault.symbol}`} onClose={onCloseModal}>
