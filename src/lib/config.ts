@@ -19,7 +19,7 @@ export const viemClients: { [chainId: number]: PublicClient } = {
   [base.id]: getPublicClient(wagmiConfig, { chainId: base.id }) as PublicClient
 }
 
-interface Token {
+export interface Token {
   symbol: string
   decimals: number
   iconSrc: string
@@ -31,17 +31,17 @@ export const tokens: { [tokenAddress: Lowercase<Address>]: Token } = {
   [usdc[base.id].address]: { symbol: 'USDC', decimals: 6, iconSrc: '/icons/tokens/usdc.png' }
 }
 
-export const vaults: { [vaultAddress: Lowercase<Address>]: Token & { underlyingToken: Token } } = {
+export const vaults: { [vaultAddress: Lowercase<Address>]: Token & { underlyingTokenAddress: Lowercase<Address> } } = {
   '0x4e42f783db2d0c5bdff40fdc66fcae8b1cda4a43': {
     symbol: 'przWETH',
     decimals: 18,
     iconSrc: '/icons/tokens/weth.png',
-    underlyingToken: tokens[weth[base.id].address]
+    underlyingTokenAddress: weth[base.id].address
   },
   '0x7f5c2b379b88499ac2b997db583f8079503f25b9': {
     symbol: 'przUSDC',
     decimals: 6,
     iconSrc: '/icons/tokens/usdc.png',
-    underlyingToken: tokens[usdc[base.id].address]
+    underlyingTokenAddress: usdc[base.id].address
   }
 }
