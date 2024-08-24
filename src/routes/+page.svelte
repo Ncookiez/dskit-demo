@@ -8,7 +8,11 @@
   <PageLink href="/gallery" icon={{ src: '/icons/ui-image.svg', alt: 'Gallery Page' }} disabled>NFT Gallery</PageLink>
   <PageLink href="/events" icon={{ src: '/icons/list.svg', alt: 'Events Page' }} disabled>Event Tools</PageLink>
   <PageLink href="/socials" icon={{ src: '/icons/users-social.svg', alt: 'Socials Page' }} disabled>Socials</PageLink>
-  <PageLink href="/info" icon={{ src: '/icons/medical-sign.svg', alt: 'Get Started with DSKit!' }}>Get Started!</PageLink>
+  <PageLink
+    target="_blank"
+    href="https://github.com/Ncookiez/dskit?tab=readme-ov-file#ds-kit"
+    icon={{ src: '/icons/medical-sign.svg', alt: 'Get Started with DSKit!' }}>Get Started!</PageLink
+  >
 </nav>
 
 <style>

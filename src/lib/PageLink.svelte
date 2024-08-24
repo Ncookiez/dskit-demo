@@ -1,10 +1,11 @@
 <script lang="ts">
   export let href: string
+  export let target: string | undefined
   export let icon: { src: string; alt: string }
   export let disabled: boolean = false
 </script>
 
-<a href={!disabled ? href : undefined} class:disabled>
+<a href={!disabled ? href : undefined} {target} class:disabled>
   <button>
     <img src={icon.src} height={32} width={32} alt={icon.alt} />
     <slot />
