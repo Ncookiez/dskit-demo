@@ -49,6 +49,9 @@
   </TokenRow>
 {/each}
 
+<br />
+<p><i>(Prize savings vaults provided by <a href="https://pooltogether.com/" target="_blank">PoolTogether</a>)</i></p>
+
 <style>
   .modal-button-content {
     padding: 0 0.5rem;
@@ -64,5 +67,9 @@
     display: flex;
     align-items: center;
     gap: 0.5rem;
+  }
+
+  p {
+    opacity: 0.6;
   }
 </style>
