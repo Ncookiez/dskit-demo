@@ -1,6 +1,6 @@
 <script lang="ts">
   export let href: string
-  export let target: string | undefined
+  export let target: string | undefined = undefined
   export let icon: { src: string; alt: string }
   export let disabled: boolean = false
 </script>
